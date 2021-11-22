@@ -3,7 +3,7 @@ Summary:    System settings plugin for Nemo Mobile
 Version:    0.5.75
 Release:    1
 License:    BSD
-URL:        https://git.sailfishos.org/mer-core/nemo-qml-plugin-systemsettings
+URL:        https://github.com/sailfishos/nemo-qml-plugin-systemsettings/
 Source0:    %{name}-%{version}.tar.bz2
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -73,20 +73,11 @@ rm -rf %{buildroot}
 
 %post
 /sbin/ldconfig
-# Migrate old installations to system/user locale, see JB#47651
-if [ -e /var/lib/environment/nemo/locale.conf ]
+# Note: can be removed after a stop release
+if [ ! -e /var/lib/location/configuration-migrated ]
 then
-    # Copy system locale to user location
-    if [ ! -e /home/.system/var/lib/environment/100000/locale.conf ]
-    then
-        mkdir -p /home/.system/var/lib/environment/100000 || :
-        # Fix an issue with dir perms, from connman
-        chmod +rx /home/.system /home/.system/var /home/.system/var/lib || :
-        cp /var/lib/environment/nemo/locale.conf /home/.system/var/lib/environment/100000/ || :
-    fi
-
-    # Migrate to new system locale location
-    mv /var/lib/environment/nemo/locale.conf /etc/locale.conf || :
+    cp /etc/location/location.conf /var/lib/location/location.conf || :
+    touch /var/lib/location/configuration-migrated || :
 fi
 
 %postun -p /sbin/ldconfig
@@ -100,6 +91,8 @@ fi
 %attr(4710,-,privileged) %{_libexecdir}/setlocale
 %dir %attr(0775, root, privileged) /etc/location
 %config %attr(0664, root, privileged) /etc/location/location.conf
+%dir %attr(0775, root, privileged) /var/lib/location
+%config %attr(0664, root, privileged) /var/lib/location/location.conf
 %{_datadir}/translations/*.qm
 
 %files devel

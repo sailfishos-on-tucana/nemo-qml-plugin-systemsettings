@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 - 2019 Jolla Ltd.
+ * Copyright (c) 2016 - 2021 Jolla Ltd.
  * Copyright (c) 2019 Open Mobile Platform LLC.
  *
  * You may use this file under the terms of the BSD license as follows:
@@ -834,6 +834,14 @@ QVariantMap SettingsVpnModel::processOpenVpnProvisioningFile(QFile &provisioning
                 } else if (directive == QStringLiteral("connect-retry-max")) {
                     // Ignore, must not be set with ConnMan
                     qInfo() << "Ignoring connect-retry-max with OpenVPN";
+                } else if (directive == QStringLiteral("block-ipv6")) {
+                     if (!arguments.isEmpty()) {
+                         rv.insert(QStringLiteral("OpenVPN.BlockIPv6"), arguments.join(QChar(' ')));
+                     }
+                } else if (directive == QStringLiteral("up") || directive == QStringLiteral("down")) {
+                    // Ignore both up and down scripts as they would interfere with ConnMan and
+                    // we do not ship any OpenVPN scripts with the package.
+                    qInfo() << "Ignoring " << directive << " script";
                 } else {
                     // A directive that ConnMan does not care about - pass through to the config file
                     extraOptions.append(line);
@@ -1231,6 +1239,7 @@ bool SettingsVpnModel::processPppdProvisioningFile(QFile &provisioningFile, QVar
         ENTRY("require-mppe-128", "PPPD.ReqMPPE128"),
         ENTRY("mppe-stateful", "PPPD.ReqMPPEStateful"),
         ENTRY("novj", "PPPD.NoVJ"),
+        ENTRY("noipv6", "PPPD.NoIPv6"),
     };
 #undef ENTRY
 
